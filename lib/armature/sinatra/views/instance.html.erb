@@ -1,0 +1,8 @@
+<table>
+  <% @metrics.each do |m| %>
+    <tr>
+      <td><%= m.name %></td> 
+      <td><%= m.healthy? %></td> 
+    </tr>
+  <% end %>
+</table>

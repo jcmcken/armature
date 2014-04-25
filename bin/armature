@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+require 'armature'
+require 'optparse'
+require 'redis'
+require 'json'
+
+def get_options
+  options = {}
+  OptionParser.new do |opts|
+    opts.on('-i', '--instance-id INSTANCE_ID') do |opt|
+      options[:instance_id] = opt
+    end
+    opts.on('-m', '--metric-id METRIC_ID') do |opt|
+      options[:metric_id] = opt
+    end
+  end.parse!
+  options
+end
+
+def run
+  options = get_options
+  db = Armature::Manager.new(Redis.new)
+
+  case ARGV[0]
+  when 'add'
+    db.add_metric(options[:instance_id], Armature::Metric.new(options[:metric_id]))
+  when 'destroy'
+    db.destroy_metric(options[:instance_id], options[:metric_id])
+  when 'list'
+    puts db.list_metrics(options[:instance_id]).to_json
+  when 'get'
+    puts db.get_metric(options[:instance_id], options[:metric_id]).to_json
+  when 'dump'
+    puts db.to_json(options[:instance_id])
+  when 'upgrade'
+    metric = db.get_metric(options[:instance_id], options[:metric_id])
+    metric.upgrade!
+    db.add_metric(options[:instance_id], metric)
+  when 'downgrade'
+    metric = db.get_metric(options[:instance_id], options[:metric_id])
+    metric.downgrade!
+    db.add_metric(options[:instance_id], metric)
+  end
+end
+
+run if __FILE__ == $0

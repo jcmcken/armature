@@ -1,0 +1,1 @@
+require 'armature/sinatra/routes'
